@@ -9,3 +9,6 @@ out/
 bin/
 .settings/
 .metadata/
+files/
+logs/
+test/

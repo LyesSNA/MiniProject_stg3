@@ -5,6 +5,7 @@ import org.paumard.elevator.event.Event;
 import org.paumard.elevator.model.Person;
 import org.paumard.elevator.model.WaitingList;
 import org.paumard.elevator.student.DumbElevator;
+import org.paumard.elevator.student.EqualityElevator;
 import org.paumard.elevator.system.Elevators;
 import org.paumard.elevator.system.ShadowElevator;
 import org.paumard.elevator.system.ShadowElevators;
@@ -26,7 +27,7 @@ public class Building {
     public static final int MAX_DISPLAYED_FLOORS = 10;
     public static final int MAX_FLOOR = 10;
     public static final LocalTime START_TIME = LocalTime.of(6, 0, 0);
-    public static final LocalTime END_TIME = LocalTime.of(22, 30, 0);
+    public static final LocalTime END_TIME = LocalTime.of(8,  	0, 0);
     public static final LocalTime END_OF_DAY = END_TIME.plusHours(1);
     public static Random random = new Random(10L); // 10L
     public static LocalTime time = START_TIME;
@@ -47,9 +48,9 @@ public class Building {
         WaitingList waitingList = WaitingList.getInstance();
         int totalNumberOfPeople = waitingList.countPeople();
 
-        Elevator elevator1 = new DumbElevator(ELEVATOR_CAPACITY, "Dumb 1");
-        Elevator elevator2 = new DumbElevator(ELEVATOR_CAPACITY, "Dumb 2");
-        Elevators elevators = new Elevators(List.of(elevator1, elevator2));
+        Elevator elevator1 = new DumbElevator(ELEVATOR_CAPACITY, "Dmb");
+        Elevator elevator2 = new EqualityElevator(ELEVATOR_CAPACITY, "Equlity", (DumbElevator) elevator1);
+        Elevators elevators = new Elevators(List.of(elevator2, elevator1));
 
         List<Event> startEvents = Event.createStartEventFor(elevators);
         events.put(time, startEvents);
@@ -236,7 +237,7 @@ public class Building {
                                     .collect(Collectors.toList());
                             // 2nd criteria: fastest travel
                             Function<Event, Integer> timeToReachFloor =
-                                    event -> event.getNextFloors().indexOf(destinationFloor);
+                                    event -> event.getNextFloors().indexOf(destinationFloor); 
                             possibleEvents =
                                     possibleEvents.stream().collect(Collectors.groupingBy(timeToReachFloor))
                                             .entrySet().stream()

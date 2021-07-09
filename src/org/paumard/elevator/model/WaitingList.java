@@ -18,7 +18,7 @@ public class WaitingList {
 
     public static final double PROBABLITY_TO_CALL_FROM_1 = 0.8d;
     private static final double PROBABLITY_NOT_TO_CALL_FROM_1 = 0.9d;
-    private static final double ADJUSTMENT_COEFFICIENT = 10d;
+    private static final double ADJUSTMENT_COEFFICIENT = 3d;
     private static List<String> names = new ArrayList<>();
     private static NavigableMap<LocalTime, Double> affluence;
     private static BinaryOperator<Double> unused = (d1, d2) -> d1;

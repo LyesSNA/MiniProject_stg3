@@ -5,7 +5,8 @@ import org.paumard.elevator.event.DIRECTION;
 import org.paumard.elevator.event.Event;
 import org.paumard.elevator.model.Person;
 import org.paumard.elevator.model.WaitingList;
-import org.paumard.elevator.student.DumbElevator;
+import org.paumard.elevator.student.DumbElevator; 
+import org.paumard.elevator.student.EqualityElevator;
 import org.paumard.elevator.system.Elevators;
 import org.paumard.elevator.system.ShadowElevator;
 import org.paumard.elevator.system.ShadowElevators;
@@ -39,7 +40,7 @@ public class RunAsTest {
 
     public static void main(String[] args) throws IOException {
 
-        // PRINTER = System.out;
+        //PRINTER = System.out;
         PRINTER = new PrintStream("logs/debug.log");
 
         Set<PrintStream> printers = new HashSet<>(List.of(PRINTER, System.out));
@@ -112,9 +113,9 @@ public class RunAsTest {
         WaitingList waitingList = WaitingList.getInstanceWith(waitingLists);
         int totalNumberOfPeople = waitingList.countPeople();
 
-        Elevator elevator1 = new DumbElevator(ELEVATOR_CAPACITY, "Dumb 1");
-        Elevator elevator2 = new DumbElevator(ELEVATOR_CAPACITY, "Dumb 2");
-        Elevators elevators = new Elevators(List.of(elevator1, elevator2));
+        DumbElevator slave = new DumbElevator(ELEVATOR_CAPACITY, "Slave");
+        Elevator master = new EqualityElevator(ELEVATOR_CAPACITY, "Master", slave);
+        Elevators elevators = new Elevators(List.of(slave, master));
 
         Map<String, Integer> startingFloors = new HashMap<>();
         for (int indexElevator = 0 ; indexElevator < elevators.count() ; indexElevator++) {

@@ -2,81 +2,167 @@ package org.paumard.elevator.student;
 
 import org.paumard.elevator.Building;
 import org.paumard.elevator.Elevator;
-import org.paumard.elevator.event.DIRECTION;
 import org.paumard.elevator.model.Person;
-
+import java.time.Duration;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DumbElevator implements Elevator {
-    private DIRECTION direction = DIRECTION.UP;
-    private int currentFloor = 1;
-    private final String id;
+	public static final LocalTime MORNING_TIME = LocalTime.of(10, 0, 0);
+	public static final LocalTime EVENING_TIME = LocalTime.of(15, 30, 0);
+	private static final int ANGER_LIMIT_THRESHOLD = 180;
+	private int currentFloor = 1;
+	private List<List<Person>> peopleByFloor = List.of();
 
+	private List<Person> people = new ArrayList<>();
+	private final int capacity;
+	private LocalTime time;
+	private List<Integer> destinations = List.of();
 
-    public DumbElevator(int capacity, String id) {
-        this.id = id;
-    }
-    @Override
-    public String getId() {
-        return this.id;
-    }
+	private final String id;
 
-    @Override
-    public void startsAtFloor(LocalTime time, int initialFloor) {
-        this.currentFloor = initialFloor;
-    }
+	private boolean orderedToTakeDown;
+	
 
-    @Override
-    public void peopleWaiting(List<List<Person>> peopleByFloor) {
+	public DumbElevator(int capacity, String id) {
+		this.id = id;
+		this.capacity = capacity;
+	}
 
-    }
+	@Override
+	public void startsAtFloor(LocalTime time, int initialFloor) {
+		this.time = time;
+		this.currentFloor = initialFloor;
+	}
 
-    @Override
-    public List<Integer> chooseNextFloors() {
-        if (direction == DIRECTION.UP) {
-            if (currentFloor < Building.MAX_FLOOR) {
-                currentFloor++;
-            } else {
-                this.direction = DIRECTION.DOWN;
-                currentFloor--;
-            }
-        } else {
-            if (currentFloor > 1) {
-                currentFloor--;
-            } else {
-                this.direction = DIRECTION.UP;
-                currentFloor++;
-            }
-        }
-        return List.of(currentFloor);
-    }
+	@Override
+	public void peopleWaiting(List<List<Person>> peopleByFloor) {
+		this.peopleByFloor = peopleByFloor;
+	}
 
-    @Override
-    public void arriveAtFloor(int floor) {
-    }
+	@Override
+	public List<Integer> chooseNextFloors() {
 
-    @Override
-    public void loadPeople(List<Person> person) {
-    }
+		if (!this.destinations.isEmpty()) {
+			return this.destinations;
+		}
+		
+		if (orderedToTakeDown == true) {
+			return List.of(10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
+		}
 
-    @Override
-    public void unload(List<Person> person) {
-    }
+		int numberOfPeopleWaiting = countWaitingPeople();
+		if (numberOfPeopleWaiting > 0 && this.time != Building.END_OF_DAY) {
+			List<Integer> destinationsbyFloors = PickupPeopleFromFloors();
+			int nonEmptyFloor = findNonEmptyFloor().get(0);
+			if (nonEmptyFloor != this.currentFloor && destinationsbyFloors.isEmpty()) {
+				return List.of(nonEmptyFloor);
+			}
+			
+			if (!destinationsbyFloors.isEmpty()) {
+				this.destinations = destinationsbyFloors;
+				return this.destinations;
+			} 
+		}
 
-    @Override
-    public void newPersonWaitingAtFloor(int floor, Person person) {
-    }
+		return List.of(1);
 
-    @Override
-    public void lastPersonArrived() {
-    }
+	}
 
-    @Override
-    public void timeIs(LocalTime time) {
-    }
+	private List<Integer> PickupPeopleFromFloors() {
+		int indexOfCurrentFloor = this.currentFloor - 1;
+		List<Person> waitingListForCurrentFloor = this.peopleByFloor.get(indexOfCurrentFloor);
 
-    @Override
-    public void standByAtFloor(int currentFloor) {
-    }
+		List<Integer> destinationFloorsForCurrentFloor = findDestinationFloors(waitingListForCurrentFloor);
+		this.destinations = destinationFloorsForCurrentFloor;
+		return this.destinations;
+	}
+
+	private List<Integer> findDestinationFloors(List<Person> waitingListForCurrentFloor) {
+
+		return waitingListForCurrentFloor.stream().map(person -> person.getDestinationFloor()).distinct().sorted()
+				.collect(Collectors.toList());
+
+	}
+
+	private List<Integer> findNonEmptyFloor() {
+		Map<Integer, Integer> floorsanddestinations = new HashMap<>();
+		for (int indexFloor = 0; indexFloor < Building.MAX_FLOOR; indexFloor++) {
+			if (!peopleByFloor.get(indexFloor).isEmpty()) {
+				floorsanddestinations.put(indexFloor + 1, peopleByFloor.get(indexFloor).size());
+				floorsanddestinations.entrySet().stream()
+						.sorted(Map.Entry.<Integer, Integer>comparingByValue().reversed());
+				List<Integer> sorteddestinationsbyFloors = floorsanddestinations.entrySet().stream()
+						.map(p -> p.getKey()).collect(Collectors.toList());
+				return sorteddestinationsbyFloors;
+			}
+
+		}
+		return List.of(-1);
+	}
+
+	private int countWaitingPeople() {
+		return peopleByFloor.stream().mapToInt(list -> list.size()).sum();
+	}
+
+	@Override
+	public void arriveAtFloor(int floor) {
+		if (!this.destinations.isEmpty()) {
+			this.destinations.remove(0);
+		}
+		this.currentFloor = floor;
+	}
+
+	@Override
+	public void loadPeople(List<Person> people) {
+		this.people.addAll(people);
+		int indexFloor = this.currentFloor - 1;
+		this.peopleByFloor.get(indexFloor).removeAll(people);
+	}
+
+	@Override
+	public void unload(List<Person> people) {
+		this.people.removeAll(people);
+	}
+
+	@Override
+	public void newPersonWaitingAtFloor(int floor, Person person) {
+		int indexFloor = floor - 1;
+		this.peopleByFloor.get(indexFloor).add(person);
+	}
+
+	@Override
+	public void lastPersonArrived() {
+	}
+
+	@Override
+	public void timeIs(LocalTime time) {
+		this.time = time;
+	}
+
+	@Override
+	public void standByAtFloor(int currentFloor) {
+	}
+
+	@Override
+	public String getId() {
+		return this.id;
+	}
+
+	public int getCapacity() {
+		return capacity;
+	}
+	public void setDestinations(List<Integer> destinations) {
+		this.destinations = destinations;
+	}
+	public void setPeopleByFloor(List<List<Person>> peopleByFloor) {
+		this.peopleByFloor = peopleByFloor;
+	}
+	public void setOrderedToTakeDown(boolean orderToTakeDown) {
+		this.orderedToTakeDown = orderToTakeDown;
+	}
 }
