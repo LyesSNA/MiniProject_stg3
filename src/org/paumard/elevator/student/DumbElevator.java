@@ -12,8 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DumbElevator implements Elevator {
-	public static final LocalTime MORNING_TIME = LocalTime.of(10, 0, 0);
-	public static final LocalTime EVENING_TIME = LocalTime.of(15, 30, 0);
+	public static final LocalTime LEAVING_TIME = LocalTime.of(16, 30, 0);
 	private static final int ANGER_LIMIT_THRESHOLD = 180;
 	private int currentFloor = 1;
 	private List<List<Person>> peopleByFloor = List.of();
@@ -48,7 +47,6 @@ public class DumbElevator implements Elevator {
 	public List<Integer> chooseNextFloors() {
 
 		if (!this.destinations.isEmpty()) {
-			return this.destinations;
 		}
 
 		if (orderedToTakeDown == true) {
@@ -56,10 +54,17 @@ public class DumbElevator implements Elevator {
 			destinations.add(10);
 			if(currentFloor == 10) {
 				destinations.addAll(List.of(9, 8, 7, 6, 5, 4, 3, 2, 1));
+//				
+//				for (Integer integer : destinations) {
+//					if (peopleByFloor.get(integer-1).isEmpty())
+//						destinations.remove(integer);
+//				}
+//				
 				destinations.remove(0);
-				System.out.println(this.time +  "      here     " + destinations);
+//				System.out.println(this.time +  "      here     " + destinations);
 				return destinations;
 			}
+			return this.destinations;
 		}
 
 		int numberOfPeopleWaiting = countWaitingPeople();
