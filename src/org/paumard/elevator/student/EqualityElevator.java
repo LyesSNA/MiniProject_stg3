@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class EqualityElevator implements Elevator {
-	private static final int ANGER_LIMIT_THRESHOLD = 10;
+	private static final int ANGER_LIMIT_THRESHOLD = 360;
 	private DIRECTION direction = DIRECTION.UP;
 	private int currentFloor = 1;
 	private List<List<Person>> peopleByFloor = List.of();
@@ -71,20 +71,18 @@ public class EqualityElevator implements Elevator {
 		List<Integer> result = new ArrayList<Integer>();
 		for (int indexFloor = 0; indexFloor < 10; indexFloor++) {
 			List<Person> waitingList = this.peopleByFloor.get(indexFloor);
-			System.out.println(this.time + "    "  + "    " +waitingList);
-			if (!waitingList.isEmpty() 
-					&& numberOfPeopleWaiting < 5) {
+			if (!waitingList.isEmpty()) {
 				Person mostPatientPerson = waitingList.get(0);
 				LocalTime arrivalTime = mostPatientPerson.getArrivalTime();
 				Duration waitingTime = Duration.between(arrivalTime, this.time);
 				long waitingTimeInSeconds = waitingTime.toSeconds();
 				if (waitingTimeInSeconds > ANGER_LIMIT_THRESHOLD) {
-//					System.out.println( this.time + "    " + indexFloor + "    ");
 					result.add(indexFloor + 1);
 				}
 			}
 		}
-		return new ArrayList<>(result);
+		System.out.println(this.time + "    "  + result + "    ");
+		return result;
 	}
 
 	@Override
@@ -193,16 +191,16 @@ public class EqualityElevator implements Elevator {
 		this.people.addAll(people);  
 		int indexFloor = this.currentFloor -1;
 		orderToTakePeopleDown();
-		this.peopleByFloor.get(indexFloor).removeAll(people);
-		if(peopleByFloor.get(0).size() >= 10) {
-			List<List<Person>> peopleByFloor2 = peopleByFloor;
-			for (int indexFlr = 1 ; indexFlr < Building.MAX_FLOOR ; indexFlr++) {
-				peopleByFloor2.get(indexFlr).clear();
-			}
-			this.e.setPeopleByFloor(peopleByFloor2);
-		}
-		else
-		this.e.setPeopleByFloor(this.peopleByFloor);
+//		this.peopleByFloor.get(indexFloor).removeAll(people);
+//		if(peopleByFloor.get(0).size() >= 10) {
+//			List<List<Person>> peopleByFloor2 = peopleByFloor;
+//			for (int indexFlr = 1 ; indexFlr < Building.MAX_FLOOR ; indexFlr++) {
+//				peopleByFloor2.get(indexFlr).clear();
+//			}
+//			this.e.setPeopleByFloor(peopleByFloor2);
+//		}
+//		else
+//		this.e.setPeopleByFloor(this.peopleByFloor);
 
 	}
 
@@ -228,15 +226,15 @@ public class EqualityElevator implements Elevator {
 		int indexFloor = floor - 1;
 		this.peopleByFloor.get(indexFloor).add(person);
 		orderToTakePeopleDown();
-		if(peopleByFloor.get(0).size() >= 10) {
-			List<List<Person>> peopleByFloor2 = peopleByFloor;
-			for (int indexFlr = 1 ; indexFlr < Building.MAX_FLOOR ; indexFlr++) {
-				peopleByFloor2.get(indexFlr).clear();
-			}
-			this.e.setPeopleByFloor(peopleByFloor2);
-		}
-		else
-		this.e.setPeopleByFloor(this.peopleByFloor);
+//		if(peopleByFloor.get(0).size() >= 10) {
+//			List<List<Person>> peopleByFloor2 = peopleByFloor;
+//			for (int indexFlr = 1 ; indexFlr < Building.MAX_FLOOR ; indexFlr++) {
+//				peopleByFloor2.get(indexFlr).clear();
+//			}
+//			this.e.setPeopleByFloor(peopleByFloor2);
+//		}
+//		else
+//		this.e.setPeopleByFloor(this.peopleByFloor);
 	}
 
 	@Override

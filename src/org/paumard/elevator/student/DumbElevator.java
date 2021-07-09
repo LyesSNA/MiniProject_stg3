@@ -26,7 +26,7 @@ public class DumbElevator implements Elevator {
 	private final String id;
 
 	private boolean orderedToTakeDown;
-	
+
 
 	public DumbElevator(int capacity, String id) {
 		this.id = id;
@@ -50,9 +50,16 @@ public class DumbElevator implements Elevator {
 		if (!this.destinations.isEmpty()) {
 			return this.destinations;
 		}
-		
+
 		if (orderedToTakeDown == true) {
-			return List.of(10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
+			if (!destinations.contains(10))
+			destinations.add(10);
+			if(currentFloor == 10) {
+				destinations.addAll(List.of(9, 8, 7, 6, 5, 4, 3, 2, 1));
+				destinations.remove(0);
+				System.out.println(this.time +  "      here     " + destinations);
+				return destinations;
+			}
 		}
 
 		int numberOfPeopleWaiting = countWaitingPeople();
@@ -62,7 +69,7 @@ public class DumbElevator implements Elevator {
 			if (nonEmptyFloor != this.currentFloor && destinationsbyFloors.isEmpty()) {
 				return List.of(nonEmptyFloor);
 			}
-			
+
 			if (!destinationsbyFloors.isEmpty()) {
 				this.destinations = destinationsbyFloors;
 				return this.destinations;
@@ -95,7 +102,7 @@ public class DumbElevator implements Elevator {
 			if (!peopleByFloor.get(indexFloor).isEmpty()) {
 				floorsanddestinations.put(indexFloor + 1, peopleByFloor.get(indexFloor).size());
 				floorsanddestinations.entrySet().stream()
-						.sorted(Map.Entry.<Integer, Integer>comparingByValue().reversed());
+				.sorted(Map.Entry.<Integer, Integer>comparingByValue().reversed());
 				List<Integer> sorteddestinationsbyFloors = floorsanddestinations.entrySet().stream()
 						.map(p -> p.getKey()).collect(Collectors.toList());
 				return sorteddestinationsbyFloors;
@@ -107,7 +114,7 @@ public class DumbElevator implements Elevator {
 
 	private int countWaitingPeople() {
 		return peopleByFloor.stream().mapToInt(list -> list.size()).sum();
-	}
+	}	
 
 	@Override
 	public void arriveAtFloor(int floor) {
